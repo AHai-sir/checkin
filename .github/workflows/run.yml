@@ -1,21 +1,28 @@
-name: run
+name: GLaDOS Checkin
 
 on:
-  workflow_dispatch:
-  push:
+  workflow_dispatch: # 手动触发
+  push:              # 推送时触发
   schedule:
-    - cron: 10 16 * * *
+    - cron: 10 16 * * * # 每天北京时间凌晨 0:10 运行
 
 jobs:
   run:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 18
-      - run: npm ci
-      - run: npm run main
+          cache: 'npm' # 开启缓存加速
+
+      - name: Install dependencies
+        run: npm ci || npm install # 如果没有 package-lock.json 则使用 install
+
+      - name: Run Sign-in Script
+        run: node main.js # 假设你的文件名是 main.js
         env:
           GLADOS: ${{ secrets.GLADOS }}
           NOTIFY: ${{ secrets.NOTIFY }}
