@@ -3,20 +3,20 @@ const gladosCheckIn = async (cookie, index) => {
   
   const headers = {
     'cookie': cookie.trim(),
-    'referer': 'https://glados.rocks/console/checkin',
+    'referer': 'https://glados.cloud/console/checkin',
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   };
 
   try {
     // 1. 签到
-    const checkin = await fetch('https://glados.rocks/api/user/checkin', {
+    const checkin = await fetch('https://glados.cloud/api/user/checkin', {
       method: 'POST',
       headers: { ...headers, 'content-type': 'application/json' },
       body: '{"token":"glados.one"}',
     }).then(r => r.json());
 
     // 2. 获取状态
-    const status = await fetch('https://glados.rocks/api/user/status', {
+    const status = await fetch('https://glados.cloud/api/user/status', {
       method: 'GET',
       headers,
     }).then(r => r.json());
