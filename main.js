@@ -4,26 +4,21 @@ const gladosCheckIn = async (cookie, index) => {
   const baseUrl = 'https://glados.cloud';
   
   const headers = {
-    'cookie': cookie.trim(),
-    'referer': `${baseUrl}/console/checkin`,
-    'origin': baseUrl,
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'content-type': 'application/json;charset=UTF-8',
     'accept': 'application/json, text/plain, */*',
-    'sec-ch-ua': '"Not A(Brand";v="99", "Google Chrome";v="121", "Chromium";v="121"',
-    'sec-ch-ua-mobile': '?0',
-    'sec-ch-ua-platform': '"Windows"',
-    'sec-fetch-dest': 'empty',
-    'sec-fetch-mode': 'cors',
-    'sec-fetch-site': 'same-origin'
+    'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
+    'content-type': 'application/json;charset=UTF-8', // 对应图 6
+    'cookie': cookie.trim(),
+    'origin': baseUrl, // 对应图 1
+    'referer': `${baseUrl}/console/checkin`,
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0'
   };
 
   try {
-    // 1. 签到：注意这里的 body 必须是 glados.network
+    // 1. 签到接口：注意 token 必须改回 glados.cloud
     const checkin = await fetch(`${baseUrl}/api/user/checkin`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ token: "glados.network" }), 
+      body: JSON.stringify({ token: "glados.cloud" }), 
     }).then(r => r.json());
 
     // 2. 获取状态
@@ -33,8 +28,6 @@ const gladosCheckIn = async (cookie, index) => {
     }).then(r => r.json());
 
     const leftDays = status.data ? Math.floor(status.data.leftDays) : '未知';
-    
-    // 如果 message 还是让你去官网，这里会显示出来
     return `账号 ${index} [${checkin.message}]: 剩余 ${leftDays} 天`;
   } catch (error) {
     return `账号 ${index} [运行异常]: ${error.message}`;
