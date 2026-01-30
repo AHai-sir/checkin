@@ -1,22 +1,26 @@
 const gladosCheckIn = async (cookie, index) => {
   if (!cookie) return `账号 ${index}: Cookie 为空`;
   
+  const baseUrl = 'https://glados.cloud'; // 统一新域名
+  
   const headers = {
     'cookie': cookie.trim(),
-    'referer': 'https://glados.cloud/console/checkin',
+    'referer': `${baseUrl}/console/checkin`,
+    'origin': baseUrl, // 补充截图中的 Origin 字段
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'content-type': 'application/json;charset=UTF-8'
   };
 
   try {
-    // 1. 签到
-    const checkin = await fetch('https://glados.cloud/api/user/checkin', {
+    // 1. 签到请求
+    const checkin = await fetch(`${baseUrl}/api/user/checkin`, {
       method: 'POST',
-      headers: { ...headers, 'content-type': 'application/json' },
-      body: '{"token":"glados.one"}',
+      headers,
+      body: JSON.stringify({ token: "glados.network" }), // 建议尝试这个新 token
     }).then(r => r.json());
 
     // 2. 获取状态
-    const status = await fetch('https://glados.cloud/api/user/status', {
+    const status = await fetch(`${baseUrl}/api/user/status`, {
       method: 'GET',
       headers,
     }).then(r => r.json());
