@@ -1,22 +1,29 @@
 const gladosCheckIn = async (cookie, index) => {
   if (!cookie) return `账号 ${index}: Cookie 为空`;
   
-  const baseUrl = 'https://glados.cloud'; // 统一新域名
+  const baseUrl = 'https://glados.cloud';
   
   const headers = {
     'cookie': cookie.trim(),
     'referer': `${baseUrl}/console/checkin`,
-    'origin': baseUrl, // 补充截图中的 Origin 字段
+    'origin': baseUrl,
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'content-type': 'application/json;charset=UTF-8'
+    'content-type': 'application/json;charset=UTF-8',
+    'accept': 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Not A(Brand";v="99", "Google Chrome";v="121", "Chromium";v="121"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': '"Windows"',
+    'sec-fetch-dest': 'empty',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-site': 'same-origin'
   };
 
   try {
-    // 1. 签到请求
+    // 1. 签到：注意这里的 body 必须是 glados.network
     const checkin = await fetch(`${baseUrl}/api/user/checkin`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ token: "glados.network" }), // 建议尝试这个新 token
+      body: JSON.stringify({ token: "glados.network" }), 
     }).then(r => r.json());
 
     // 2. 获取状态
@@ -26,6 +33,8 @@ const gladosCheckIn = async (cookie, index) => {
     }).then(r => r.json());
 
     const leftDays = status.data ? Math.floor(status.data.leftDays) : '未知';
+    
+    // 如果 message 还是让你去官网，这里会显示出来
     return `账号 ${index} [${checkin.message}]: 剩余 ${leftDays} 天`;
   } catch (error) {
     return `账号 ${index} [运行异常]: ${error.message}`;
