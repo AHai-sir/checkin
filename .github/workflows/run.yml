@@ -4,37 +4,43 @@ on:
   workflow_dispatch: # 手动触发
   push:              # 推送时触发
   schedule:
-    - cron: 10 16 * * * # 每天北京时间凌晨 0:10 运行
+    - cron: '10 16 * * *'  # 策略 1：每天北京时间 0:10 触发（用于签到）
+    - cron: '0 0 1 * *'    # 策略 2：每月 1 号凌晨 0:00 触发（用于保活）
 
 jobs:
   run:
     runs-on: ubuntu-latest
     
-    # 强制赋予该任务对仓库代码的写权限，否则 git push 会报错
     permissions:
       contents: write
 
     steps:
       - uses: actions/checkout@v4
 
+      # 【步骤 1】配置环境并执行签到（只有在每天的定时器、手动或推送时才执行，每月 1 号的纯保活不重复执行此脚本）
       - name: Setup Node.js
+        if: github.event_name != 'schedule' || github.event.schedule == '10 16 * * *'
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'npm' # 开启缓存加速
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci || npm install # 如果没有 package-lock.json 则使用 install
+        if: github.event_name != 'schedule' || github.event.schedule == '10 16 * * *'
+        run: npm ci || npm install 
 
       - name: Run Sign-in Script
-        run: node main.js # 假设你的文件名是 main.js
+        if: github.event_name != 'schedule' || github.event.schedule == '10 16 * * *'
+        run: node main.js 
         env:
           GLADOS: ${{ secrets.GLADOS }}
           NOTIFY: ${{ secrets.NOTIFY }}
 
+      # 【步骤 2】严格保活控制（只有在每月 1 号触发时，或者手动触发时，才允许执行空提交）
       - name: Keep Workflow Alive
+        if: github.event_name != 'schedule' || github.event.schedule == '0 0 1 * *'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git commit --allow-empty -m "keep alive"
+          git commit --allow-empty -m "chore: monthly repository keep-alive"
           git push
