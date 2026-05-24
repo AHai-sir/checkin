@@ -4,8 +4,8 @@ on:
   workflow_dispatch: # 手动触发
   push:              # 推送时触发
   schedule:
-    - cron: '10 16 * * *'  # 策略 1：每天北京时间 0:10 触发（用于签到）
-    - cron: '0 0 1 * *'    # 策略 2：每月 1 号凌晨 0:00 触发（用于保活）
+    - cron: '10 16 * * *'  # 每天北京时间 0:10 运行（用于签到）
+    - cron: '0 0 1 * *'    # 每月 1 号凌晨 0:00 运行（用于保活）
 
 jobs:
   run:
@@ -17,28 +17,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 【步骤 1】配置环境并执行签到（只有在每天的定时器、手动或推送时才执行，每月 1 号的纯保活不重复执行此脚本）
+      # 【步骤 1】签到控制：排除掉保活定时器即可。即：只要不是每月 1 号的定时器，其余情况（手动、推送、每日定时）全部允许签到。
       - name: Setup Node.js
-        if: github.event_name != 'schedule' || github.event.schedule == '10 16 * * *'
+        if: github.event.schedule != '0 0 1 * *'
         uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: 'npm'
 
       - name: Install dependencies
-        if: github.event_name != 'schedule' || github.event.schedule == '10 16 * * *'
+        if: github.event.schedule != '0 0 1 * *'
         run: npm ci || npm install 
 
       - name: Run Sign-in Script
-        if: github.event_name != 'schedule' || github.event.schedule == '10 16 * * *'
+        if: github.event.schedule != '0 0 1 * *'
         run: node main.js 
         env:
           GLADOS: ${{ secrets.GLADOS }}
           NOTIFY: ${{ secrets.NOTIFY }}
 
-      # 【步骤 2】严格保活控制（只有在每月 1 号触发时，或者手动触发时，才允许执行空提交）
+      # 【步骤 2】严格保活控制：断绝一切其他入口。唯独且仅有当触发源是“每月 1 号定时器”时，才允许生成保活提交。
       - name: Keep Workflow Alive
-        if: github.event_name != 'schedule' || github.event.schedule == '0 0 1 * *'
+        if: github.event.schedule == '0 0 1 * *'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
